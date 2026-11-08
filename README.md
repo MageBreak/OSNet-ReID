@@ -72,10 +72,72 @@ Every evaluation run appends a row to `results.csv` with all settings, including
 ## Questions
 
 ### 1. Why does the cross-dataset score fall, and what would I try first for unlabelled maritime cameras?
-TODO
+
+**Why it falls.**
+- My step-3 drop (−9.9 mAP) comes only from gallery size. It uses the same cameras with 500k extra strangers: more look-alikes get ranked above the harder true matches, so mAP falls faster than Rank-1.
+- A real cross-dataset test adds *domain shift*, which is much larger:
+  - the new cameras differ in colour response, resolution, viewpoint, lighting and weather;
+  - backgrounds and clothing styles differ;
+  - the network has partly learned cues specific to Market-1501, including its BatchNorm statistics, and those do not transfer.
+- The OSNet paper shows the scale of the drop:
+  - OSNet trained *on* MSMT17 reaches only 52.9 mAP there (Table 3);
+  - a model trained on Market and tested on Duke gets 48.5 Rank-1 (Table 11), against about 88.6 when trained on Duke itself.
+
+**What I would try first for maritime cameras with no labels, in order of cost:**
+1. **Start from a model built to generalise.** That means OSNet-IBN/AIN, which adds instance normalisation to the early layers to remove camera colour and contrast cues. Train it on several labelled public datasets, not just Market. Appendix A shows this alone is competitive with unsupervised adaptation methods, and it needs zero maritime labels.
+2. **Re-estimate BatchNorm statistics on unlabelled maritime crops (AdaBN).** It takes minutes, needs no labels and no gradient training, and often recovers part of the gap.
+3. **Unsupervised domain adaptation with pseudo-labels** (SpCL, Cluster Contrast):
+   - cluster features of unlabelled maritime detections, treat each cluster as an identity, retrain, and repeat;
+   - per-camera tracking gives free positive pairs, since detections in one track are the same person.
+4. **Maritime-specific risks to design for:**
+   - crew in identical coveralls or hi-vis gear, which makes clothing colour a weak cue;
+   - glare, spray and night-time IR;
+   - long distances, which mean low-resolution crops (Table 6 shows resolution hurts most);
+   - heavy occlusion by equipment.
+
+Even with no *training* labels, I would hand-label a small maritime *test* set (a few dozen people across cameras). Without one, none of these steps can be measured.
 
 ### 2. Which evaluation mistake would make these numbers look better than they are, and how did I avoid it?
-TODO
+
+**Counting same-camera matches.** Market-1501 contains many consecutive frames of the same person from the same camera. If those stay in the gallery, the query's nearest neighbour is often a near-duplicate frame, so Rank-1 and mAP measure frame matching, not re-identification across cameras.
+- `evaluate.py` removes, for each query, every gallery image with the same identity **and** the same camera. This is the standard Market-1501 protocol.
+- On the standard gallery, `--check` confirms my numbers match torchreid's reference `evaluate_rank` exactly (71.60 / 89.88 for step 2).
+
+**The second trap: tuning on the test set.** Market-1501 has no validation split, so it is tempting to evaluate after every epoch and keep the best checkpoint, or to try variants until one wins on the test set.
+- `train.py` never touches query or gallery. It trains a fixed schedule and saves the last epoch.
+- The two extra 2 GB runs were planned before I saw their results. Both are reported, including the triplet-loss run that did worse.
+- The headline model stayed the original baseline.
+- Train and test identities are disjoint (standard split). Step 1 uses ImageNet-only weights, not torchreid's ReID-trained model-zoo weights.
 
 ### 3. AI tools and web resources used
-TODO
+
+| Tool / resource | What for |
+|---|---|
+| Claude (claude.ai chat) | Explaining the assignment; a section-by-section walkthrough of the OSNet paper; planning the pipeline; drafting `train.py` and `evaluate.py`; debugging (checkpoint loading with PyTorch's `weights_only` default, a broken multi-line shell command); planning the 2 GB experiments; drafting this README. |
+| Claude Code | Local environment setup: venv, CUDA PyTorch build for the RTX 5080, torchreid install, dataset and weight downloads, an offline verification script (`verify_offline.py`, `SETUP_LOG.md`). |
+| [CHECK: any other tools, e.g. ChatGPT, Copilot, Google, Stack Overflow] | |
+| torchreid repo and docs | API, dataset layout, `market1501_500k` option |
+| Market-1501 project page | Dataset and distractor downloads, filename convention |
+| MSMT17 page | Requested access; not received in time |
+| OSNet paper (arXiv 1905.00953), incl. Appendices A–B | Training recipe, cross-domain discussion, triplet-loss rule of thumb |
+| Bag of Tricks (1903.07071), IBN-Net, SpCL, Cluster Contrast | Background for question 1 |
+
+**What I did and checked myself:**
+- ran every experiment and read the logs;
+- chose the 20-epoch schedule from a timed 1-epoch run;
+- verified the evaluation against torchreid (`--check`);
+- caught that a broken line continuation had nearly overwritten the baseline checkpoint;
+- chose batch 32 × 2 over 16 × 4 before evaluating;
+- decided to report the triplet run even though it was worse.
+
+[CHECK: edit this to match what you actually decided yourself]
+
+## What I would do next (not done for lack of time)
+- Hold out ~100 training identities as a validation split for choosing hyperparameters.
+- Run 3 seeds per configuration (the paper does), since single-seed differences under ~0.5 points are noise.
+- Evaluate on MSMT17 for a true cross-dataset number, and compare OSNet-IBN.
+- Time the 20-epoch schedule on an actual free T4.
+- **Bandwidth for deployment:**
+  - extract features at the camera and send them instead of video;
+  - compress them (fp16 or int8; PCA fitted on training features) and measure the accuracy cost;
+  - send one averaged feature per track instead of one per frame.
