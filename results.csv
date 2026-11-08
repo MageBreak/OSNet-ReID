@@ -1,0 +1,4 @@
+step,model,train_data,test_data,mAP,rank1,rank5,split,image_size,epochs,lr,distance,weights_sha,time
+1,OSNet-x1.0 (ImageNet weights),ImageNet only,market1501,4.0,13.6,25.7,"standard test split (750 IDs; 3,368 query / 15,913 gallery)",256x128,0,-,euclidean,imagenet,2026-11-08T18:05:58
+2,OSNet-x1.0 (fine-tuned on Market-1501),Market-1501 train (751 IDs),market1501,71.6,89.9,96.2,"standard test split (750 IDs; 3,368 query / 15,913 gallery)",256x128,20,0.0015,euclidean,9bedbcb49410,2026-11-08T18:06:13
+3,OSNet-x1.0 (fine-tuned on Market-1501),Market-1501 train (751 IDs),market500k,61.7,83.6,91.7,"standard test split + 500k distractors in gallery (515,913 gallery)",256x128,20,0.0015,euclidean,9bedbcb49410,2026-11-08T18:11:01

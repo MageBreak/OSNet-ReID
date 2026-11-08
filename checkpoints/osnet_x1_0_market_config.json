@@ -1,0 +1,20 @@
+{
+  "data_root": "~/Documents/RSKDLabs/data",
+  "epochs": 20,
+  "fixbase_epochs": 2,
+  "lr": 0.0015,
+  "batch_size": 64,
+  "height": 256,
+  "width": 128,
+  "transforms": [
+    "random_flip"
+  ],
+  "workers": 8,
+  "seed": 1,
+  "out": "checkpoints/osnet_x1_0_market.pth",
+  "num_classes": 751,
+  "train_minutes": 5.8,
+  "gpu": "NVIDIA GeForce RTX 5080 Laptop GPU",
+  "torch": "2.11.0+cu128",
+  "torchreid": "1.4.0"
+}

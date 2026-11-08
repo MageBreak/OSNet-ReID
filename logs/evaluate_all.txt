@@ -1,0 +1,144 @@
+
+=== Step 1: weights=ImageNet | target=market1501 ===
+Successfully loaded imagenet pretrained weights from "/home/magebreak/.cache/torch/checkpoints/osnet_x1_0_imagenet.pth"
+** The following layers are discarded due to unmatched keys or layer size: ['classifier.weight', 'classifier.bias']
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+  using cached features features/imagenet_market1501_256x128_query.pt
+  using cached features features/imagenet_market1501_256x128_gallery.pt
+  query 3368 | gallery 15913 | feature dim 512
+  mAP 4.0 | Rank-1 13.6 | Rank-5 25.7 | Rank-10 33.0
+  torchreid check: mAP 3.96 | Rank-1 13.60 -> MATCH
+
+=== Step 2: weights=checkpoints/osnet_x1_0_market.pth | target=market1501 ===
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+  query 3368 | gallery 15913 | feature dim 512
+  mAP 71.6 | Rank-1 89.9 | Rank-5 96.2 | Rank-10 97.7
+  torchreid check: mAP 71.60 | Rank-1 89.88 -> MATCH
+
+=== Step 3: weights=checkpoints/osnet_x1_0_market.pth | target=market500k ===
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |   515913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |   515913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+  query 3368 | gallery 515913 | feature dim 512
+  mAP 61.7 | Rank-1 83.6 | Rank-5 91.7 | Rank-10 94.3
+  --check skipped: gallery too large for torchreid's in-memory evaluation
+
+| Step | Model | Test data | mAP | Rank-1 | Split | Image size | Epochs | LR |
+|---|---|---|---|---|---|---|---|---|
+| 1 | OSNet-x1.0 (ImageNet weights) | market1501 | 4.0 | 13.6 | standard test split (750 IDs; 3,368 query / 15,913 gallery) | 256x128 | 0 | - |
+| 2 | OSNet-x1.0 (fine-tuned on Market-1501) | market1501 | 71.6 | 89.9 | standard test split (750 IDs; 3,368 query / 15,913 gallery) | 256x128 | 20 | 0.0015 |
+| 3 | OSNet-x1.0 (fine-tuned on Market-1501) | market500k | 61.7 | 83.6 | standard test split + 500k distractors in gallery (515,913 gallery) | 256x128 | 20 | 0.0015 |
+
+Drop from step 2 to step 3: mAP -9.9 points (14% relative), Rank-1 -6.3 points (7% relative)

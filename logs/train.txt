@@ -1,0 +1,65 @@
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+Successfully loaded imagenet pretrained weights from "/home/magebreak/.cache/torch/checkpoints/osnet_x1_0_imagenet.pth"
+** The following layers are discarded due to unmatched keys or layer size: ['classifier.weight', 'classifier.bias']
+device=cuda | classes=751 | train images=12936
+config: {'data_root': '~/Documents/RSKDLabs/data', 'epochs': 20, 'fixbase_epochs': 2, 'lr': 0.0015, 'batch_size': 64, 'height': 256, 'width': 128, 'transforms': ['random_flip'], 'workers': 8, 'seed': 1, 'out': 'checkpoints/osnet_x1_0_market.pth'}
+epoch 1/20 [classifier-only] loss 5.2829 | train acc 19.6% | lr 0.001500 | 13s
+epoch 2/20 [classifier-only] loss 3.0235 | train acc 64.6% | lr 0.001491 | 6s
+epoch 3/20 [all layers] loss 2.0631 | train acc 79.8% | lr 0.001463 | 23s
+epoch 4/20 [all layers] loss 1.3294 | train acc 97.7% | lr 0.001418 | 18s
+epoch 5/20 [all layers] loss 1.1900 | train acc 99.6% | lr 0.001357 | 18s
+epoch 6/20 [all layers] loss 1.1354 | train acc 99.9% | lr 0.001280 | 18s
+epoch 7/20 [all layers] loss 1.1090 | train acc 100.0% | lr 0.001191 | 18s
+epoch 8/20 [all layers] loss 1.0949 | train acc 100.0% | lr 0.001090 | 18s
+epoch 9/20 [all layers] loss 1.0837 | train acc 100.0% | lr 0.000982 | 18s
+epoch 10/20 [all layers] loss 1.0753 | train acc 100.0% | lr 0.000867 | 18s
+epoch 11/20 [all layers] loss 1.0679 | train acc 100.0% | lr 0.000750 | 18s
+epoch 12/20 [all layers] loss 1.0618 | train acc 100.0% | lr 0.000633 | 18s
+epoch 13/20 [all layers] loss 1.0568 | train acc 100.0% | lr 0.000518 | 18s
+epoch 14/20 [all layers] loss 1.0527 | train acc 100.0% | lr 0.000410 | 18s
+epoch 15/20 [all layers] loss 1.0492 | train acc 100.0% | lr 0.000309 | 18s
+epoch 16/20 [all layers] loss 1.0464 | train acc 100.0% | lr 0.000220 | 18s
+epoch 17/20 [all layers] loss 1.0443 | train acc 100.0% | lr 0.000143 | 18s
+epoch 18/20 [all layers] loss 1.0435 | train acc 100.0% | lr 0.000082 | 18s
+epoch 19/20 [all layers] loss 1.0424 | train acc 100.0% | lr 0.000037 | 18s
+epoch 20/20 [all layers] loss 1.0421 | train acc 100.0% | lr 0.000009 | 18s
+total training time: 5.8 min on NVIDIA GeForce RTX 5080 Laptop GPU
+saved checkpoints/osnet_x1_0_market.pth

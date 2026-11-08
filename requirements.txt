@@ -1,0 +1,8 @@
+# Install PyTorch for your GPU first (see pytorch.org). Tested with torch 2.11.0+cu128.
+torch
+torchvision
+numpy
+# torchreid 1.4.0 is installed from source, not from pip:
+#   git clone https://github.com/KaiyangZhou/deep-person-reid.git
+#   cd deep-person-reid && pip install -r requirements.txt && python setup.py develop
+# Exact versions used for the reported numbers: requirements-lock.txt
