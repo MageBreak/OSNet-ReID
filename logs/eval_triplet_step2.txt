@@ -1,0 +1,50 @@
+
+=== Step 2: weights=checkpoints/osnet_x1_0_market_triplet_2gb.pth | target=market1501 ===
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+  query 3368 | gallery 15913 | feature dim 512
+  mAP 72.2 | Rank-1 89.6 | Rank-5 96.7 | Rank-10 97.9
+  peak GPU memory (model + features + ranking on cuda): 3060 MB
+  (features loaded from cache are not re-extracted; use --no-cache to measure extraction memory)
+  torchreid check: mAP 72.16 | Rank-1 89.58 -> MATCH
+
+| Step | Model | Test data | mAP | Rank-1 | Split | Image size | Epochs | LR |
+|---|---|---|---|---|---|---|---|---|
+| 2 | OSNet-x1.0 (fine-tuned on Market-1501, CE+triplet, AMP, 2 GB cap) | market1501 | 72.2 | 89.6 | standard test split (750 IDs; 3,368 query / 15,913 gallery) | 256x128 | 20 | 0.0015 |

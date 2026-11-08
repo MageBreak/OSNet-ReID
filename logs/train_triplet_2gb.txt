@@ -1,0 +1,68 @@
+GPU memory capped at 2.0 GB
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+Successfully loaded imagenet pretrained weights from "/home/magebreak/.cache/torch/checkpoints/osnet_x1_0_imagenet.pth"
+** The following layers are discarded due to unmatched keys or layer size: ['classifier.weight', 'classifier.bias']
+device=cuda | classes=751 | train images=12936
+effective batch = 32 x 2 = 64
+config: {'data_root': '~/Documents/RSKDLabs/data', 'epochs': 20, 'fixbase_epochs': 2, 'lr': 0.0015, 'batch_size': 32, 'accum_steps': 2, 'height': 256, 'width': 128, 'transforms': ['random_flip'], 'loss': 'softmax_triplet', 'triplet_weight': 0.5, 'margin': 0.3, 'num_instances': 4, 'amp': True, 'max_vram_gb': 2.0, 'workers': 8, 'seed': 1, 'out': 'checkpoints/osnet_x1_0_market_triplet_2gb.pth'}
+epoch 1/20 [classifier-only] loss 8.4425 (triplet 4.3101) | train acc 7.7% | lr 0.001500 | 8s
+epoch 2/20 [classifier-only] loss 6.4418 (triplet 4.3460) | train acc 33.2% | lr 0.001491 | 4s
+epoch 3/20 [all layers] loss 4.2435 (triplet 0.7876) | train acc 35.4% | lr 0.001463 | 14s
+epoch 4/20 [all layers] loss 2.6141 (triplet 0.2051) | train acc 66.9% | lr 0.001418 | 13s
+epoch 5/20 [all layers] loss 2.0297 (triplet 0.1255) | train acc 81.0% | lr 0.001357 | 17s
+epoch 6/20 [all layers] loss 1.6911 (triplet 0.0675) | train acc 90.2% | lr 0.001280 | 17s
+epoch 7/20 [all layers] loss 1.4947 (triplet 0.0352) | train acc 94.4% | lr 0.001191 | 16s
+epoch 8/20 [all layers] loss 1.3636 (triplet 0.0215) | train acc 97.6% | lr 0.001090 | 17s
+epoch 9/20 [all layers] loss 1.3096 (triplet 0.0241) | train acc 98.8% | lr 0.000982 | 18s
+epoch 10/20 [all layers] loss 1.2576 (triplet 0.0134) | train acc 99.1% | lr 0.000867 | 16s
+epoch 11/20 [all layers] loss 1.2155 (triplet 0.0107) | train acc 99.7% | lr 0.000750 | 15s
+epoch 12/20 [all layers] loss 1.1923 (triplet 0.0077) | train acc 99.8% | lr 0.000633 | 16s
+epoch 13/20 [all layers] loss 1.1805 (triplet 0.0051) | train acc 99.9% | lr 0.000518 | 15s
+epoch 14/20 [all layers] loss 1.1692 (triplet 0.0066) | train acc 99.9% | lr 0.000410 | 15s
+epoch 15/20 [all layers] loss 1.1561 (triplet 0.0022) | train acc 100.0% | lr 0.000309 | 17s
+epoch 16/20 [all layers] loss 1.1497 (triplet 0.0026) | train acc 100.0% | lr 0.000220 | 14s
+epoch 17/20 [all layers] loss 1.1465 (triplet 0.0018) | train acc 100.0% | lr 0.000143 | 17s
+epoch 18/20 [all layers] loss 1.1442 (triplet 0.0023) | train acc 100.0% | lr 0.000082 | 17s
+epoch 19/20 [all layers] loss 1.1434 (triplet 0.0044) | train acc 100.0% | lr 0.000037 | 17s
+epoch 20/20 [all layers] loss 1.1410 (triplet 0.0024) | train acc 100.0% | lr 0.000009 | 17s
+peak GPU memory: 1402 MB allocated, 1512 MB reserved
+total training time: 5.0 min on NVIDIA GeForce RTX 5080 Laptop GPU
+saved checkpoints/osnet_x1_0_market_triplet_2gb.pth

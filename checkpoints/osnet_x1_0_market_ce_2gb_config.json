@@ -1,0 +1,29 @@
+{
+  "data_root": "~/Documents/RSKDLabs/data",
+  "epochs": 20,
+  "fixbase_epochs": 2,
+  "lr": 0.0015,
+  "batch_size": 32,
+  "accum_steps": 2,
+  "height": 256,
+  "width": 128,
+  "transforms": [
+    "random_flip"
+  ],
+  "loss": "softmax",
+  "triplet_weight": 0.5,
+  "margin": 0.3,
+  "num_instances": 4,
+  "amp": true,
+  "max_vram_gb": 2.0,
+  "workers": 8,
+  "seed": 1,
+  "out": "checkpoints/osnet_x1_0_market_ce_2gb.pth",
+  "num_classes": 751,
+  "train_minutes": 3.8,
+  "gpu": "NVIDIA GeForce RTX 5080 Laptop GPU",
+  "peak_vram_allocated_mb": 1402,
+  "peak_vram_reserved_mb": 1512,
+  "torch": "2.11.0+cu128",
+  "torchreid": "1.4.0"
+}

@@ -13,6 +13,10 @@ Usage:
   python evaluate.py --step all --weights checkpoints/osnet_x1_0_market.pth --target market500k
   add --check to also run torchreid's own evaluation and confirm the numbers match
 
+Low-memory mode (for small GPUs, e.g. 2 GB):
+  --max-vram-gb 2 --amp --batch-size 64 --rank-device cpu --chunk 32 --no-cache
+  (--no-cache so feature extraction actually runs and its memory is measured)
+
 Evaluation protocol (standard Market-1501 / MSMT17 protocol):
   - a query is ranked against the whole gallery by feature distance
   - gallery images of the SAME person from the SAME camera as the query are removed
@@ -73,22 +77,25 @@ def build_model(weights, device):
 
 
 @torch.no_grad()
-def extract(model, loader, device):
+def extract(model, loader, device, amp=False):
     """Run images through the network; in eval mode OSNet returns the 512-d feature."""
     feats, pids, camids = [], [], []
     for batch in loader:
         imgs, pid, camid = unpack(batch)
-        feats.append(model(imgs.to(device, non_blocking=True)).float().cpu())
+        with torch.autocast(device_type="cuda", dtype=torch.float16,
+                            enabled=amp and device == "cuda"):
+            f = model(imgs.to(device, non_blocking=True))
+        feats.append(f.float().cpu())
         pids.append(pid)
         camids.append(camid)
     return torch.cat(feats), torch.cat(pids), torch.cat(camids)
 
 
-def get_features(model, loader, device, cache_path):
+def get_features(model, loader, device, cache_path, amp=False):
     if cache_path and os.path.exists(cache_path):
         print(f"  using cached features {cache_path}")
         return torch.load(cache_path)
-    out = extract(model, loader, device)
+    out = extract(model, loader, device, amp)
     if cache_path:
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         torch.save(out, cache_path)
@@ -157,6 +164,8 @@ def run_step(step, args, device):
     ds_name, ds_kwargs, split_desc = TARGETS[target]
 
     print(f"\n=== Step {step}: weights={weights or 'ImageNet'} | target={target} ===")
+    if device == "cuda":
+        torch.cuda.reset_peak_memory_stats()
     model, cfg = build_model(weights, device)
 
     dm = torchreid.data.ImageDataManager(
@@ -168,16 +177,21 @@ def run_step(step, args, device):
 
     tag = "imagenet" if weights is None else file_hash(weights)
     cache = None if args.no_cache else os.path.join(
-        args.cache_dir, f"{tag}_{target}_{args.height}x{args.width}")
+        args.cache_dir, f"{tag}_{target}_{args.height}x{args.width}" + ("_fp16" if args.amp else ""))
     qf, q_pids, q_camids = get_features(model, loaders["query"], device,
-                                        cache and cache + "_query.pt")
+                                        cache and cache + "_query.pt", args.amp)
     gf, g_pids, g_camids = get_features(model, loaders["gallery"], device,
-                                        cache and cache + "_gallery.pt")
+                                        cache and cache + "_gallery.pt", args.amp)
     print(f"  query {qf.size(0)} | gallery {gf.size(0)} | feature dim {qf.size(1)}")
 
+    rank_device = args.rank_device if device == "cuda" else "cpu"
     mAP, cmc = rank_metrics(qf, q_pids, q_camids, gf, g_pids, g_camids,
-                            args.dist, device, chunk=args.chunk)
+                            args.dist, rank_device, chunk=args.chunk)
     print(f"  mAP {mAP:.1f} | Rank-1 {cmc[1]:.1f} | Rank-5 {cmc[5]:.1f} | Rank-10 {cmc[10]:.1f}")
+    peak_mb = round(torch.cuda.max_memory_allocated() / 2**20) if device == "cuda" else 0
+    if device == "cuda":
+        print(f"  peak GPU memory (model + feature extraction if not cached + ranking on "
+              f"{rank_device}): {peak_mb} MB")
 
     if args.check:
         if gf.size(0) > 100_000:
@@ -188,10 +202,17 @@ def run_step(step, args, device):
             print(f"  torchreid check: mAP {t_map:.2f} | Rank-1 {t_r1:.2f} -> "
                   f"{'MATCH' if ok else 'MISMATCH'}")
 
+    if weights is None:
+        model_name = "OSNet-x1.0 (ImageNet weights)"
+    else:
+        loss_name = "CE+triplet" if cfg.get("loss") == "softmax_triplet" else "CE"
+        extras = (", AMP" if cfg.get("amp") else "") + (
+            f", {cfg['max_vram_gb']:g} GB cap" if cfg.get("max_vram_gb") else "")
+        model_name = f"OSNet-x1.0 (fine-tuned on Market-1501, {loss_name}{extras})"
+
     row = {
         "step": step,
-        "model": "OSNet-x1.0 (ImageNet weights)" if weights is None
-                 else "OSNet-x1.0 (fine-tuned on Market-1501)",
+        "model": model_name,
         "train_data": "ImageNet only" if weights is None else "Market-1501 train (751 IDs)",
         "test_data": target,
         "mAP": round(mAP, 1),
@@ -202,9 +223,21 @@ def run_step(step, args, device):
         "epochs": cfg.get("epochs", 0),
         "lr": cfg.get("lr", "-"),
         "distance": args.dist,
+        "train_minutes": cfg.get("train_minutes", "-"),
+        "train_peak_vram_mb": cfg.get("peak_vram_allocated_mb", "-"),
+        "eval_fp16": args.amp,
+        "eval_rank_device": rank_device,
+        "eval_vram_cap_gb": args.max_vram_gb or "-",
+        "eval_peak_vram_mb": peak_mb,
         "weights_sha": tag,
         "time": datetime.datetime.now().isoformat(timespec="seconds"),
     }
+    if os.path.exists(args.out) and os.path.getsize(args.out) > 0:
+        with open(args.out) as f:
+            header = f.readline().strip().split(",")
+        if header != list(row):
+            raise SystemExit(f"{args.out} has an older column layout; rename it "
+                             f"(e.g. results_v1.csv) and re-run")
     with open(args.out, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(row))
         if f.tell() == 0:
@@ -226,6 +259,11 @@ def main():
     p.add_argument("--batch-size", type=int, default=256)
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--chunk", type=int, default=128, help="queries ranked at once")
+    p.add_argument("--rank-device", choices=["cuda", "cpu"], default="cuda",
+                   help="where to rank the gallery; cpu keeps GPU memory small")
+    p.add_argument("--amp", action="store_true", help="fp16 feature extraction")
+    p.add_argument("--max-vram-gb", type=float, default=None,
+                   help="cap on GPU memory PyTorch may allocate")
     p.add_argument("--cache-dir", default="features")
     p.add_argument("--no-cache", action="store_true")
     p.add_argument("--check", action="store_true",
@@ -234,6 +272,10 @@ def main():
     args = p.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device == "cuda" and args.max_vram_gb:
+        total = torch.cuda.get_device_properties(0).total_memory
+        torch.cuda.set_per_process_memory_fraction(min(1.0, args.max_vram_gb * 1024**3 / total))
+        print(f"GPU memory capped at {args.max_vram_gb} GB")
     steps = [1, 2, 3] if args.step == "all" else [int(args.step)]
     rows = {s: run_step(s, args, device) for s in steps}
 

@@ -1,0 +1,49 @@
+GPU memory capped at 2.0 GB
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |    15913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+Successfully loaded imagenet pretrained weights from "/home/magebreak/.cache/torch/checkpoints/osnet_x1_0_imagenet.pth"
+** The following layers are discarded due to unmatched keys or layer size: ['classifier.weight', 'classifier.bias']
+device=cuda | classes=751 | train images=12936
+effective batch = 16 x 4 = 64
+config: {'data_root': '~/Documents/RSKDLabs/data', 'epochs': 1, 'fixbase_epochs': 0, 'lr': 0.0015, 'batch_size': 16, 'accum_steps': 4, 'height': 256, 'width': 128, 'transforms': ['random_flip'], 'loss': 'softmax_triplet', 'triplet_weight': 0.5, 'margin': 0.3, 'num_instances': 4, 'amp': True, 'max_vram_gb': 2.0, 'workers': 8, 'seed': 1, 'out': 'checkpoints/test_probe.pth'}
+epoch 1/1 [all layers] loss 6.5529 (triplet 0.9222) | train acc 7.1% | lr 0.001500 | 34s
+peak GPU memory: 725 MB allocated, 756 MB reserved
+total training time: 0.6 min on NVIDIA GeForce RTX 5080 Laptop GPU
+saved checkpoints/test_probe.pth

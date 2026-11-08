@@ -1,0 +1,49 @@
+GPU memory capped at 2.0 GB
+
+=== Step 3: weights=checkpoints/osnet_x1_0_market_ce_2gb.pth | target=market500k ===
+Building train transforms ...
++ resize to 256x128
++ random flip
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+Building test transforms ...
++ resize to 256x128
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+=> Loading train (source) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |   515913 |         6
+  ----------------------------------------
+=> Loading test (target) dataset
+=> Loaded Market1501
+  ----------------------------------------
+  subset   | # ids | # images | # cameras
+  ----------------------------------------
+  train    |   751 |    12936 |         6
+  query    |   750 |     3368 |         6
+  gallery  |   751 |   515913 |         6
+  ----------------------------------------
+
+
+  **************** Summary ****************
+  source            : ['market1501']
+  # source datasets : 1
+  # source ids      : 751
+  # source images   : 12936
+  # source cameras  : 6
+  target            : ['market1501']
+  *****************************************
+
+
+  query 3368 | gallery 515913 | feature dim 512
+  mAP 61.3 | Rank-1 83.6 | Rank-5 91.9 | Rank-10 94.2
+  peak GPU memory (model + feature extraction if not cached + ranking on cpu): 411 MB
+
+| Step | Model | Test data | mAP | Rank-1 | Split | Image size | Epochs | LR |
+|---|---|---|---|---|---|---|---|---|
+| 3 | OSNet-x1.0 (fine-tuned on Market-1501, CE, AMP, 2 GB cap) | market500k | 61.3 | 83.6 | standard test split + 500k distractors in gallery (515,913 gallery) | 256x128 | 20 | 0.0015 |
