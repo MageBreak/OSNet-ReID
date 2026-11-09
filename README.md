@@ -53,9 +53,9 @@ python train.py --epochs 20 --loss softmax_triplet --amp --max-vram-gb 2 --batch
 My step-3 drop comes only from a larger gallery on the same cameras. A real cross-dataset test adds domain shift: new cameras, lighting, viewpoints, backgrounds and clothing, plus Market-specific cues the network has learned, including its BatchNorm statistics.
 
 For maritime cameras with no labels, I would try, in order:
-1. OSNet-IBN, trained on several public datasets. Its instance normalisation makes it more robust to new cameras (OSNet paper, Appendix A).
-2. Re-estimating BatchNorm statistics on unlabelled maritime footage.
-3. Pseudo-label adaptation: cluster unlabelled detections, treat clusters as identities, retrain and repeat (SpCL / Cluster Contrast).
+1. Use a model designed to cope with new cameras. OSNet-IBN is a version of OSNet that adds “instance normalisation” to its early layers.
+2. Recalibrate the model on maritime footage.
+3. Let the model label the data itself: Group the unlabelled maritime detections by similarity, and treat each group as one person, for example
 
 I would also hand-label a small maritime test set, so that progress can be measured.
 
