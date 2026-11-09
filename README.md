@@ -67,7 +67,7 @@ Counting gallery images of the same person from the same camera, which are near-
 - the baseline stays the headline model.
 
 **3. AI tools and web resources used**
-- **Claude (chat):** explaining the OSNet paper, debugging `train.py` / `evaluate.py`, planning the 2 GB experiments, formatting this README.
+- **Claude (chat):** explaining the OSNet paper, writing the first drafts and debugging `train.py` / `evaluate.py`, planning the 2 GB experiments, formatting this README.
 - **Claude Code:** environment setup.
 - **Web resources:** torchreid repo and docs, Market-1501 and MSMT17 pages, the OSNet paper (arXiv 1905.00953).
 - **I ran every experiment and checked the outputs myself.**
